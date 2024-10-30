@@ -54,13 +54,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun CommunityScreen(
     navController: NavController,
-    resolutionViewModel: ResolutionViewModel,
-    cid: String,
-    name: String,
-    image: String,
-    members: List<String>) {
-
+    resolutionViewModel: ResolutionViewModel
+) {
     val uid = AccountViewModelObject.accountViewModel.uid.value
+    val community = HomeViewModelObject.homeViewModel.community
+    val name = community.value!!.name
+    val description = community.value!!.description
+    val image = community.value!!.image
+    val cid = community.value!!.cid
+    val members = community.value!!.members
 
 
     // Start listening for resolution changes when the page loads
@@ -113,7 +115,7 @@ fun CommunityScreen(
                     FloatingActionButton(
                         onClick = {
                             expanded = false
-                            navController.navigate("UpdateResolution")
+                            navController.navigate("UpdateResolution?cid=$cid&uid=$uid")
                         },
                         modifier = Modifier.padding(8.dp)
                     ) {
@@ -122,7 +124,7 @@ fun CommunityScreen(
                     FloatingActionButton(
                         onClick = {
                             expanded = false
-                            navController.navigate("CreateResolution")
+                            navController.navigate("CreateResolution?cid=$cid&uid=$uid")
                         },
                         modifier = Modifier.padding(8.dp)
                     ) {

@@ -19,7 +19,7 @@ class ResolutionFireStore {
     val db = Firebase.firestore
 
     suspend fun addResolution(resolution: Resolution, cid: String, uid: String, rid: String) {
-        db.collection("resolutions").document("cid")
+        db.collection("resolutions").document(cid)
             .collection(uid).document(rid).set(resolution).await()
     }
 
@@ -80,10 +80,8 @@ class ResolutionFireStore {
     }
 
     fun getResolution(cid: String, uidList: List<String>): Flow<List<ResolutionRetrieve>> = callbackFlow {
-        val resolutionList = mutableListOf<ResolutionRetrieve>()
         val listeners = mutableListOf<ListenerRegistration>()
 
-        // Set up a listener for each UID
         uidList.forEach { uid ->
             val listener = db.collection("resolutions")
                 .document(cid)
@@ -94,33 +92,35 @@ class ResolutionFireStore {
                         return@addSnapshotListener
                     }
 
-                    // Clear previous data and add the latest snapshot data
-                    resolutionList.clear()
-                    snapshot?.documents?.forEach { doc ->
-                        doc.toObject(Resolution::class.java)?.let { resolution ->
-                            // Convert `Resolution` to `ResolutionRetrieve` manually
-                            val resolutionRetrieve = ResolutionRetrieve(
-                                rid = doc.id,
-                                uid = uid,  // Set uid manually
-                                resolutionText = resolution.resolutionText,
-                                images = resolution.images.toString(), // Convert Uri to String
-                                score = resolution.score,
-                                peopleApproved = resolution.peopleApproved
-                            )
-                            resolutionList.add(resolutionRetrieve)
-                        }
-                    }
+                    // Rebuild the list of resolutions from the snapshot
+                    val resolutionList = snapshot?.documents?.mapNotNull { doc ->
+                        val resolutionText = doc.getString("resolutionText") ?: ""
+                        val images = doc.getString("images") ?: ""
+                        val score = doc.getLong("score")?.toInt() ?: 0
+                        val peopleApproved = doc.getLong("peopleApproved")?.toInt() ?: 0
 
-                    // Send the updated list to the flow
-                    trySend(resolutionList.toList())
+                        // Create `ResolutionRetrieve` instance
+                        ResolutionRetrieve(
+                            rid = doc.id,
+                            uid = uid,
+                            resolutionText = resolutionText,
+                            images = images,
+                            score = score,
+                            peopleApproved = peopleApproved
+                        )
+                    } ?: emptyList()
+
+                    // Send the updated list to the flow if the channel is open
+                    if (!isClosedForSend) trySend(resolutionList)
                 }
 
-            listeners.add(listener) // Add listener to remove later if needed
+            listeners.add(listener)
         }
 
         awaitClose {
             listeners.forEach { it.remove() } // Clean up listeners when flow is closed
         }
     }
+
 
 }

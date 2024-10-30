@@ -14,6 +14,8 @@ import com.example.task.feature_home.domain.CommunityRetrieve
 import com.example.task.feature_home.presentation.CreateCommunityScreen
 import com.example.task.feature_home.presentation.HomeScreen
 import com.example.task.feature_resolution.presentation.CommunityScreen
+import com.example.task.feature_resolution.presentation.components.CreateResolution
+import com.example.task.feature_resolution.presentation.components.UpdateResolution
 import com.example.task.objects.AccountViewModelObject
 import com.example.task.objects.HomeViewModelObject
 import com.example.task.objects.ResolutionViewModelObject
@@ -67,32 +69,40 @@ fun NavigationController(
             )
         }
 
+        composable("CommunityScreen") {
+            CommunityScreen(
+                resolutionViewModel = ResolutionViewModelObject.resolutionViewModel,
+                navController = navController
+            )
+        }
         composable(
-            "CommunityScreen?cid={cid}&name={name}&image={image}&members={members}",
+            route = "UpdateResolution?cid={cid}&uid={uid}",
             arguments = listOf(
-                navArgument("cid") { type = NavType.StringType },
-                navArgument("name") { type = NavType.StringType },
-                navArgument("image") { type = NavType.StringType },
-                navArgument("members") { type = NavType.StringType }
+                navArgument("cid") { defaultValue = "" },
+                navArgument("uid") { defaultValue = "" }
             )
         ) { backStackEntry ->
             val cid = backStackEntry.arguments?.getString("cid") ?: ""
-            val name = backStackEntry.arguments?.getString("name") ?: ""
-            val image = backStackEntry.arguments?.getString("image") ?: ""
-            val membersString = backStackEntry.arguments?.getString("members") ?: ""
-            val members = membersString.split(",").toList() // Convert comma-separated string back to list
-
-            CommunityScreen(
+            val uid = backStackEntry.arguments?.getString("uid") ?: ""
+            UpdateResolution(navController = navController,
                 resolutionViewModel = ResolutionViewModelObject.resolutionViewModel,
-                navController = navController,
                 cid = cid,
-                name = name,
-                image = image,
-                members = members
-            )
+                uid = uid)
         }
-
-
+        composable(
+            route = "CreateResolution?cid={cid}&uid={uid}",
+            arguments = listOf(
+                navArgument("cid") { defaultValue = "" },
+                navArgument("uid") { defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val cid = backStackEntry.arguments?.getString("cid") ?: ""
+            val uid = backStackEntry.arguments?.getString("uid") ?: ""
+            CreateResolution(navController = navController,
+                resolutionViewModel = ResolutionViewModelObject.resolutionViewModel,
+                cid = cid,
+                uid = uid)
+        }
     }
 
 }

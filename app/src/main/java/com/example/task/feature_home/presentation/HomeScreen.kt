@@ -80,13 +80,8 @@ fun HomeScreen(
                     cid = userCommunitiesState[communityIndex].cid,
                     onClick = {
                         // Trigger chosenCommunity event with cid
-                        HomeViewModelObject.homeViewModel.onEvent(HomeEvent.ChosenCommunity(userCommunitiesState[communityIndex].cid))
-                        val cid = userCommunitiesState[communityIndex].cid
-                        val name = userCommunitiesState[communityIndex].name
-                        val image = userCommunitiesState[communityIndex].image
-                        val members = userCommunitiesState[communityIndex].members
-                        val membersString = members.joinToString(",")
-                        navController.navigate("CommunityScreen?cid=$cid&name=$name&image=$image&members=$membersString")
+                        HomeViewModelObject.homeViewModel.onEvent(HomeEvent.ChosenCommunity(userCommunitiesState[communityIndex]))
+                        navController.navigate("CommunityScreen")
                     },
                     onDelete = {
                         // Handle delete action here

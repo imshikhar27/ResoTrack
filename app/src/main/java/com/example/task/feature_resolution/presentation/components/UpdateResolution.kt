@@ -1,6 +1,9 @@
 package com.example.task.feature_resolution.presentation.components
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,8 +11,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -29,6 +34,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberImagePainter
+import com.example.task.R
 import com.example.task.feature_resolution.presentation.ResolutionEvent
 import com.example.task.feature_resolution.presentation.ResolutionViewModel
 import com.example.task.objects.ResolutionFireStoreObject
@@ -47,6 +54,7 @@ fun UpdateResolution(
 
     // State for dropdown and image selection
     var selectedResolutionId by remember { mutableStateOf<String?>(null) }
+    var selectedResolutionText by remember { mutableStateOf<String?>(null) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var expanded by remember { mutableStateOf(false) }
 
@@ -62,7 +70,7 @@ fun UpdateResolution(
         // Dropdown menu for resolutions
         Box {
             Text(
-                text = selectedResolutionId ?: "Select a Resolution",
+                text = selectedResolutionText ?: "Select a Resolution",
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { expanded = true }
@@ -79,6 +87,7 @@ fun UpdateResolution(
                         text = { Text(resolution.resolutionText) },
                         onClick = {
                             selectedResolutionId = resolution.rid
+                            selectedResolutionText = resolution.resolutionText
                             expanded = false
                         }
                     )
@@ -86,27 +95,27 @@ fun UpdateResolution(
             }
         }
 
-        // Image selection composable
-        Button(onClick = {
-            // Open gallery to select image
-            // Use a launcher or activity result for image selection
-            // selectedImageUri = picked image Uri
-        }) {
-            Text("Select Image")
-        }
-
-        // Display selected image if available
-        selectedImageUri?.let { uri ->
-            AsyncImage(
-                model = uri,
-                contentDescription = "Selected Image",
-                modifier = Modifier
-                    .size(150.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface),
-                contentScale = ContentScale.Crop
-            )
-        }
+        val launcher =
+            rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
+                selectedImageUri = uri
+            }
+        Image(
+            painter = rememberImagePainter(
+                if (selectedImageUri != null) {
+                    selectedImageUri
+                } else {
+                    R.drawable.baseline_account_circle_24
+                }
+            ),
+            modifier = Modifier
+                .clip(CircleShape)
+                .height(150.dp)
+                .clickable {
+                    launcher.launch("image/*")
+                },
+            contentDescription = "Picture",
+            contentScale = ContentScale.Fit,
+        )
 
         // Button to update resolution with selected image
         Button(

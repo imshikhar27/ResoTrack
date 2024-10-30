@@ -29,8 +29,8 @@ class HomeViewModel : ViewModel() {
     val _communityState = mutableStateOf<CommunityState>(CommunityState.Changed)
     val communityState: State<CommunityState> = _communityState
 
-    val _cid = mutableStateOf<String?>(null)
-    val cid : State<String?> = _cid
+    val _community = mutableStateOf<CommunityRetrieve?>(null)
+    val community : State<CommunityRetrieve?> = _community
 
     fun onEvent(event: HomeEvent) {
         when (event) {
@@ -207,7 +207,7 @@ class HomeViewModel : ViewModel() {
                 }
             }
             is HomeEvent.ChosenCommunity -> {
-                _cid.value = event.communityCid
+                _community.value = event.communityCid
             }
         }
     }
